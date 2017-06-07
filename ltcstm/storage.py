@@ -28,16 +28,19 @@ class Keypoint(object):
     def extract_keypoint(self):
         """ Extracts the data from the keypoint syntax. """
 
-        regex = r"keypoint\{.*?\}"
+        regex = r"keypoint\{(.*)\}"
 
-        matcher = re.compile(regex)
+        find = re.search(regex, self.raw_data, re.VERBOSE)
 
-        find = matcher.match(self.raw_data)
+        try:
+            output = find.group(1)
+        except AttributeError:  # no match
+            output = ""
 
         if self.run_pandoc:
-            return self.pandoc_raw_data(find.group(1))
+            return self.pandoc_raw_data(output)
         else:
-            return find.group(1)
+            return output
 
 
     def pandoc_raw_data(self, text):
