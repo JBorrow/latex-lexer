@@ -102,7 +102,7 @@ class MasterData(object):
         """ Gets the list of lectures (as part objects). """
         lectures = ltcstm.regex.find_lectures(text)
 
-        replaced, uids = ltcstm.regex.replace_with_uids(text, lectures, "LEC")
+        replaced, uids = ltcstm.regex.replace_with_uids(text, lectures, "LEC-")
 
 
 

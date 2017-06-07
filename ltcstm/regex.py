@@ -1,13 +1,13 @@
 """ Contains regex replacement functions for each individual item """
 
 
-import random
+import uuid
 import re
 
 
 def get_uid(prefix=""):
     """ Grabs a random unique identifier """
-    return "{}{:0<10}".format(prefix, random.randint(0, 1e10))
+    return "{}{}".format(prefix, uuid.uuid4())
 
 
 def text_replace(text, initial, final):
