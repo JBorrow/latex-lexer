@@ -1,9 +1,8 @@
 """ Contains regex replacement functions for each individual item """
 
+
 import random
 import re
-
-import ltcstm.storage as store
 
 
 def get_uid(prefix=""):
@@ -61,7 +60,16 @@ def find_sections(text):
     return find_items(text, regex)
 
 
-def find_pdfonly(text):
+def find_keypoints(text):
+    """ Finds all keypoints. We actually want to match the whole string as the keypoint extractor
+        object deals with our internals. """
+
+    regex = r"%%\\keypoint{.*}"
+
+    return find_items(text, regex)
+
+
+def remove_pdfonly(text):
     """ We can just kill the pdfonly blocks as they are not relevant to us. To do that, we'll
         iterate through the text string line by line and remove all references. """
 
@@ -81,7 +89,7 @@ def find_pdfonly(text):
             pdfonly = False
 
             continue
-        
+
         elif pdfonly:  # pdfonly blocks are skipped here.
             continue
 
@@ -90,4 +98,4 @@ def find_pdfonly(text):
 
         return "\n".join(output)
 
-
+    

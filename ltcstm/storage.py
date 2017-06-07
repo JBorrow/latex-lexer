@@ -8,6 +8,8 @@
 import re
 import pypandoc
 
+import ltcstm.regex
+
 
 class Keypoint(object):
     """ Basic keypoint storage and extraction class.
@@ -53,10 +55,11 @@ class Keypoint(object):
 class Part(object):
     """ Basic class for the storage of sections, lectures, start and end points """
 
-    def __init__(self, name, start, end):
+    def __init__(self, name, start, end, uid=""):
         self.name = name
         self.start = start
         self.end = end
+        self.uid = uid
 
         return
 
@@ -71,8 +74,39 @@ class MasterData(object):
         + Output string (output) """
 
     def __init__(self, text):
-        self.text = text
+        self.text = ltcstm.regex.remove_pdfonly(text)
         self.lectures = []
         self.sections = []
         self.keypoints = []
         self.output = ""
+
+
+    def find_start_stop(self, text, items):
+        """ Returns a list of tuples that describe what line numbers the items run over.
+        So, for example, if text is
+
+        <x>
+        blah
+        s
+        <y>
+        ssd
+
+        one would recieve [(0, 3), (3, 4)] """
+
+        # We can assume that the items are ordered.
+
+        return
+
+
+    def get_lectures(self, text):
+        """ Gets the list of lectures (as part objects). """
+        lectures = ltcstm.regex.find_lectures(text)
+
+        replaced, uids = ltcstm.regex.replace_with_uids(text, lectures, "LEC")
+
+
+
+
+
+
+
