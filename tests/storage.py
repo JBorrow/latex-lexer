@@ -4,6 +4,9 @@ from ltcstm.storage import Keypoint
 
 def test_keypoint_extract_keypoint():
     """ Test for Keypoint.extract_keypoint() """
+
+    # First test the extraction of data
+
     test_data = [
         r"%%\keypoint{This is a call}",
         r"\keypoint{This is a call two}",
@@ -22,6 +25,20 @@ def test_keypoint_extract_keypoint():
 
     for test, expected in zip(test_data, expected_outcomes):
         keypt = Keypoint(test, 0, 0)
+        assert keypt.output_data == expected
+
+    # Now we'll test the expected outcomes from the pandoc conversion
+
+    test_data = [
+        r"%%\keypoint{This is a \emph{call}}",
+    ]
+
+    expected_outcomes = [
+        "This is a *call*\n",
+    ]
+
+    for test, expected in zip(test_data, expected_outcomes):
+        keypt = Keypoint(test, 0, 0, run_pandoc=True)
         assert keypt.output_data == expected
 
     return
