@@ -23,9 +23,9 @@ def test_keypoint_extract_keypoint():
         r"$$ \int \cos(x) \mathrm{d}x $$"
     ]
 
-    for test, expected in zip(test_data, expected_outcomes):
+    for test, expected, i in zip(test_data, expected_outcomes, range(len(test_data))):
         keypt = Keypoint(test, 0, 0)
-        assert keypt.output_data == expected
+        assert keypt.output_data == expected, "failed on test 1.{}".format(i)
 
     # Now we'll test the expected outcomes from the pandoc conversion
 
@@ -37,9 +37,9 @@ def test_keypoint_extract_keypoint():
         "This is a *call*\n",
     ]
 
-    for test, expected in zip(test_data, expected_outcomes):
+    for test, expected, j in zip(test_data, expected_outcomes, range(len(test_data))):
         keypt = Keypoint(test, 0, 0, run_pandoc=True)
-        assert keypt.output_data == expected
+        assert keypt.output_data == expected, "failed on test 2.{}".format(j)
 
     return
 
