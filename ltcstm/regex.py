@@ -45,5 +45,49 @@ def find_items(text, regex):
     return compiled.findall(text)
 
 
+def find_lectures(text):
+    """ Finds all instances of custom lecture syntax in the text string """
+
+    regex = r"%%\\lecture{(.*)}"
+
+    return find_items(text, regex)
+
+
+def find_sections(text):
+    """ Finds all instances of custom section syntax in the text string """
+
+    regex = r"%%\\section{(.*)}"
+
+    return find_items(text, regex)
+
+
+def find_pdfonly(text):
+    """ We can just kill the pdfonly blocks as they are not relevant to us. To do that, we'll
+        iterate through the text string line by line and remove all references. """
+
+    split = text.split("\n")
+
+    pdfonly = False
+
+    output = []
+
+    for line in split:
+        if line.contains(r"%%@pdfonly"):
+            pdfonly = True
+
+            continue
+
+        elif line.contains(r"%%@pdfonlyend"):
+            pdfonly = False
+
+            continue
+        
+        elif pdfonly:  # pdfonly blocks are skipped here.
+            continue
+
+        else:
+            output.append(line)
+
+        return "\n".join(output)
 
 

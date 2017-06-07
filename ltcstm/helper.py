@@ -4,10 +4,6 @@ import random
 import pypandoc
 
 
-def get_uid():
-    return "{:0<10}".format(random.randint(0, 1e10))
-
-
 def run_pandoc(content, bibliography=""):
     """ Runs pandoc to create HTML from markdown on the content string """
     if bibliography:
