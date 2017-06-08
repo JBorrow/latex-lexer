@@ -30,7 +30,10 @@ def replace_with_uids(text, items, prefix=""):
     # generate the uids
     uid_list = [get_uid(prefix) for x in items]
 
-    output = text_replace(text, items, uid_list)
+    try:
+        output = text_replace(text, items, uid_list)
+    except IndexError:  # no replacements to be made
+        output = text
 
     return output, uid_list
 
