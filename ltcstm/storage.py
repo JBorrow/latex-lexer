@@ -13,6 +13,12 @@ import pypandoc
 import ltcstm.regex
 
 
+def html_output(uid):
+    """ Formats the UID as a html comment ready for replacement in the main text
+        after processing. """
+    return "<!-- {} -->".format(uid)
+
+
 class Keypoint(object):
     """ Basic keypoint storage and extraction class.
 
@@ -23,6 +29,7 @@ class Keypoint(object):
     def __init__(self, raw_data, uid, position, lecture=None, section=None, run_pandoc=False):
         self.raw_data = raw_data
         self.uid = uid
+        self.html = html_output(uid)
         self.position = position
 
         self.lecture = lecture
@@ -65,15 +72,9 @@ class Part(object):
         self.start = start
         self.end = end
         self.uid = uid
-        self.html = self.html_output(uid)
+        self.html = html_output(uid)
 
         return
-
-
-    def html_output(self, uid):
-        """ Formats the UID as a html comment ready for replacement in the main text
-            after processing. """
-        return "<!-- {} -->".format(uid)
 
 
 class PreprocessedData(object):
@@ -118,14 +119,17 @@ class PostprocessedData(object):
 
         Ensure that preprocessed is of type PreprocessedData """
 
-    def __init__(self, pre):
+    def __init__(self, pre, markdown):
         assert isinstance(pre, PreprocessedData)
 
         self.pre = pre
+        self.markdown = markdown
 
         self.lectures = self.categorise_part(pre.lectures, pre.lecture_uids)
         self.sections = self.categorise_part(pre.sections, pre.section_uids)
         self.keypoints = self.categorise_keypoints(pre.keypoints, pre.keypoint_uids)
+
+        self.output = self.replace_all(self.markdown)
 
 
     def find_locations(self, text, items):
@@ -172,7 +176,7 @@ class PostprocessedData(object):
         """ Creates the part objects from the Part class """
         parts = []
 
-        start_stop = self.find_start_stop(self.pre.output_text, part_uids)
+        start_stop = self.find_start_stop(self.markdown, part_uids)
 
         for part, uid, (start, stop) in zip(parts, part_uids, start_stop):
             parts.append(
@@ -200,7 +204,7 @@ class PostprocessedData(object):
     def categorise_keypoints(self, keypoints, keypoint_uids):
         """ Creates the keypoint objects from the Keypoint class """
         keypoints = []
-        line_numbers = self.find_locations(self.pre.output_text, keypoint_uids)
+        line_numbers = self.find_locations(self.markdown, keypoint_uids)
 
         for keypoint, uid, line_number in zip(keypoints, keypoint_uids, line_numbers):
             lecture = self.find_associated(line_number, self.lectures)
@@ -211,6 +215,30 @@ class PostprocessedData(object):
             )
 
         return keypoints
+
+
+    def replace_with_html(self, text, items):
+        """ Replaces UIDs with HTML comments so they are not presented to the user """
+
+        uids = []
+        htmls = []
+
+        for item in items:
+            uids.append(item.uid)
+            htmls.append(item.html)
+
+        return ltcstm.regex.text_replace(text, uids, htmls)
+
+
+    def replace_all(self, text):
+        """ Replace all section markers, lecture markers, keypoint markers with their
+            respective HTML comments. """
+
+        text = self.replace_with_html(text, self.lectures)
+        text = self.replace_with_html(text, self.sections)
+        text = self.replace_with_html(text, self.keypoints)
+
+        return text
 
 
 class MasterData(object):
@@ -227,8 +255,9 @@ class MasterData(object):
         self.bib = bib
 
         self.preprocessed = self.replace_run(text)
-
         self.markdown = self.run_pandoc(self.preprocessed.output_text)
+
+        self.postprocessed = PostprocessedData(self.preprocessed, self.markdown)
 
         self.output = ""
 
@@ -258,10 +287,3 @@ class MasterData(object):
         output_data = pypandoc.convert_text(text, "html", format="md", extra_args=extra_args)
 
         return output_data
-
-
-
-
-
-
-
