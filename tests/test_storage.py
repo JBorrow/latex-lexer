@@ -1,6 +1,6 @@
 """ Tests for storage.py """
 
-from ltcstm.storage import Keypoint
+from ltcstm.storage import Keypoint, MasterData
 
 def test_keypoint_extract_keypoint():
     """ Test for Keypoint.extract_keypoint() """
@@ -43,3 +43,24 @@ def test_keypoint_extract_keypoint():
 
     return
 
+
+def test_find_start_stop():
+    """ Tests the MasterData.find_start_stop function """
+
+    test_data = [
+        ["""<x>
+        blah
+        s
+        <y>
+        ssd""", ["<x>", "<y>"]],
+    ]
+
+    expected_outcomes = [
+        [(0, 3), (3, 4)],
+    ]
+
+    for test, expected, j in zip(test_data, expected_outcomes, range(len(test_data))):
+        master = MasterData(test[0])
+        assert master.find_start_stop(test[0], test[1]) == expected, "failed on test 2.{}".format(j)
+
+    return

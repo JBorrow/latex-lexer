@@ -95,7 +95,21 @@ class MasterData(object):
 
         # We can assume that the items are ordered.
 
-        return
+        list_of_lines = text.split("\n")
+        line_numbers = []
+
+        # This is really slow
+        for match in items:
+            for i, line in enumerate(list_of_lines):
+                if match in line:
+                    line_numbers.append(i)
+                    break
+                else:
+                    continue
+
+        line_numbers.append(len(list_of_lines) - 1)  # For the final section - it must end somewhere
+
+        return [(line_numbers[i], line_numbers[i+1]) for i in range(len(line_numbers) - 1)]
 
 
     def get_lectures(self, text):

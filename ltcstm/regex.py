@@ -80,12 +80,12 @@ def remove_pdfonly(text):
     output = []
 
     for line in split:
-        if line.contains(r"%%@pdfonly"):
+        if r"%%@pdfonly" in line:
             pdfonly = True
 
             continue
 
-        elif line.contains(r"%%@pdfonlyend"):
+        elif r"%%@pdfonlyend" in line:
             pdfonly = False
 
             continue
