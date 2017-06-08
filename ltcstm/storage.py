@@ -64,6 +64,42 @@ class Part(object):
         return
 
 
+class PreprocessedData(object):
+    """ Holds the data before processing. """
+    def __init__(self, text):
+        self.text = text
+        rep, self.lectures, self.lecture_uids = self.replace_lectures(text)
+        rep, self.sections, self.section_uids = self.replace_sections(rep)
+        rep, self.keypoints, self.keypoint_uids = self.replace_keypoints(rep)
+        self.output_text = rep
+
+    def replace_lectures(self, text):
+        """ Replaces lectures with appropriate uids. """
+        lectures = ltcstm.regex.find_lectures(text)
+
+        replaced, uids = ltcstm.regex.replace_with_uids(text, lectures, "LEC-")
+
+        return replaced, lectures, uids
+
+
+    def replace_sections(self, text):
+        """ Replaces sections with appropriate uids. """
+        sections = ltcstm.regex.find_sections(text)
+
+        replaced, uids = ltcstm.regex.replace_with_uids(text, sections, "LEC-")
+
+        return replaced, sections, uids
+
+
+    def replace_keypoints(self, text):
+        """ Replaces keypoints with appropriate uids. """
+        keypoints = ltcstm.regex.find_keypoints(text)
+
+        replaced, uids = ltcstm.regex.replace_with_uids(text, keypoints, "LEC-")
+
+        return replaced, keypoints, uids
+
+
 class MasterData(object):
     """ Master data object, holds the following data:
 
@@ -75,9 +111,7 @@ class MasterData(object):
 
     def __init__(self, text):
         self.text = ltcstm.regex.remove_pdfonly(text)
-        self.lectures = []
-        self.sections = []
-        self.keypoints = []
+        self.preprocessed = self.replace_run(text)
         self.output = ""
 
 
@@ -112,11 +146,12 @@ class MasterData(object):
         return [(line_numbers[i], line_numbers[i+1]) for i in range(len(line_numbers) - 1)]
 
 
-    def get_lectures(self, text):
-        """ Gets the list of lectures (as part objects). """
-        lectures = ltcstm.regex.find_lectures(text)
+    def replace_run(self, text):
+        """ Does the initial replacement run with the PreprocessedData object """
+        preprocessed = PreprocessedData(text)
 
-        replaced, uids = ltcstm.regex.replace_with_uids(text, lectures, "LEC-")
+        return preprocessed
+
 
 
 
