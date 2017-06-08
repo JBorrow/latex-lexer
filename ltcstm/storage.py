@@ -5,6 +5,8 @@
     Created By: Josh Borrow """
 
 
+from typing import List
+
 import re
 import pypandoc
 
@@ -18,10 +20,14 @@ class Keypoint(object):
 
         Position should be given as the line number that the keypoint as found at. """
 
-    def __init__(self, raw_data, uid, position, run_pandoc=False):
+    def __init__(self, raw_data, uid, position, lecture=None, section=None, run_pandoc=False):
         self.raw_data = raw_data
         self.uid = uid
         self.position = position
+
+        self.lecture = lecture
+        self.section = section
+
         self.run_pandoc = run_pandoc
 
         self.output_data = self.extract_keypoint()
@@ -51,7 +57,6 @@ class Keypoint(object):
         return pypandoc.convert(text, "markdown", format="tex")
 
 
-
 class Part(object):
     """ Basic class for the storage of sections, lectures, start and end points """
 
@@ -60,8 +65,15 @@ class Part(object):
         self.start = start
         self.end = end
         self.uid = uid
+        self.html = self.html_output(uid)
 
         return
+
+
+    def html_output(self, uid):
+        """ Formats the UID as a html comment ready for replacement in the main text
+            after processing. """
+        return "<!-- {} -->".format(uid)
 
 
 class PreprocessedData(object):
@@ -100,19 +112,41 @@ class PreprocessedData(object):
         return replaced, keypoints, uids
 
 
-class MasterData(object):
-    """ Master data object, holds the following data:
+class PostprocessedData(object):
+    """ The analogue of the above PreprocessedData for the PostprocessedData.
+        Creates nicely formatted HTML versions of everything.
 
-        + Input string (text)
-        + Lecture start and end points (lectures)
-        + Section start and end points (sections)
-        + Keypoints (keypoints)
-        + Output string (output) """
+        Ensure that preprocessed is of type PreprocessedData """
 
-    def __init__(self, text):
-        self.text = ltcstm.regex.remove_pdfonly(text)
-        self.preprocessed = self.replace_run(text)
-        self.output = ""
+    def __init__(self, pre):
+        assert isinstance(pre, PreprocessedData)
+
+        self.pre = pre
+
+        self.lectures = self.categorise_part(pre.lectures, pre.lecture_uids)
+        self.sections = self.categorise_part(pre.sections, pre.section_uids)
+        self.keypoints = self.categorise_keypoints(pre.keypoints, pre.keypoint_uids)
+
+
+    def find_locations(self, text, items):
+        """ Finds the locations of items in text (i.e. their line number) """
+
+        # We can assume that the items are ordered.
+
+        list_of_lines = text.split("\n")
+        number_of_lines = len(list_of_lines)
+        line_numbers = []
+
+        # This is really slow
+        for match in items:
+            for i, line in enumerate(list_of_lines):
+                if match in line:
+                    line_numbers.append(i)
+                    break
+                else:
+                    continue
+
+        return line_numbers, number_of_lines
 
 
     def find_start_stop(self, text, items):
@@ -127,23 +161,76 @@ class MasterData(object):
 
         one would recieve [(0, 3), (3, 4)] """
 
-        # We can assume that the items are ordered.
+        line_numbers, number_of_lines = self.find_locations(text, items)
 
-        list_of_lines = text.split("\n")
-        line_numbers = []
-
-        # This is really slow
-        for match in items:
-            for i, line in enumerate(list_of_lines):
-                if match in line:
-                    line_numbers.append(i)
-                    break
-                else:
-                    continue
-
-        line_numbers.append(len(list_of_lines) - 1)  # For the final section - it must end somewhere
+        line_numbers.append(number_of_lines - 1)  # For the final section - it must end somewhere
 
         return [(line_numbers[i], line_numbers[i+1]) for i in range(len(line_numbers) - 1)]
+
+
+    def categorise_part(self, parts, part_uids):
+        """ Creates the part objects from the Part class """
+        parts = []
+
+        start_stop = self.find_start_stop(self.pre.output_text, part_uids)
+
+        for part, uid, (start, stop) in zip(parts, part_uids, start_stop):
+            parts.append(
+                Part(part, start, stop, uid)
+            )
+
+        return parts
+
+
+    def find_associated(self, line_number: int, haystack: List[Part]) -> Part:
+        """ Finds the assocaited object in the haystack (of Part objects) that is at line_number.
+            This is used to find the lecture and section that each keypoint is associated with """
+
+        for needle in haystack:
+            if (needle.start < line_number) and (needle.end > line_number):
+                return needle
+            else:
+                continue
+
+        # Graceful fallback, we'll stick the keypoint/etc. on the last part.
+
+        return haystack[-1]
+
+
+    def categorise_keypoints(self, keypoints, keypoint_uids):
+        """ Creates the keypoint objects from the Keypoint class """
+        keypoints = []
+        line_numbers = self.find_locations(self.pre.output_text, keypoint_uids)
+
+        for keypoint, uid, line_number in zip(keypoints, keypoint_uids, line_numbers):
+            lecture = self.find_associated(line_number, self.lectures)
+            section = self.find_associated(line_number, self.sections)
+
+            keypoints.append(
+                Keypoint(keypoint, uid, line_number, lecture, section)
+            )
+
+        return keypoints
+
+
+class MasterData(object):
+    """ Master data object, holds the following data:
+
+        + Input string (text)
+        + Lecture start and end points (lectures)
+        + Section start and end points (sections)
+        + Keypoints (keypoints)
+        + Output string (output) """
+
+    def __init__(self, text, bib=""):
+        self.text = ltcstm.regex.remove_pdfonly(text)
+        self.bib = bib
+
+        self.preprocessed = self.replace_run(text)
+
+        self.markdown = self.run_pandoc(self.preprocessed.output_text)
+
+        self.output = ""
 
 
     def replace_run(self, text):
@@ -152,6 +239,25 @@ class MasterData(object):
 
         return preprocessed
 
+
+    def run_pandoc(self, text):
+        """ Runs pandoc (LaTeX -> Markdown) on the text string """
+        if self.bib:
+            bib = ["--bibliography={}".format(self.bib)]
+        else:
+            bib = []
+
+        extra_args = [
+            "--mathjax",
+            "-F",
+            "pandoc-crossref",
+            "-F",
+            "pandoc-citeproc"] + bib
+
+        print("Running Pandoc (MD -> HTML)")
+        output_data = pypandoc.convert_text(text, "html", format="md", extra_args=extra_args)
+
+        return output_data
 
 
 
