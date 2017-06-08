@@ -60,7 +60,7 @@ def test_find_start_stop():
     ]
 
     for test, expected, j in zip(test_data, expected_outcomes, range(len(test_data))):
-        master = PostprocessedData(PreprocessedData(test[0]))
+        master = PostprocessedData(PreprocessedData(test[0]), test[0])
         assert master.find_start_stop(test[0], test[1]) == expected, "failed on test 2.{}".format(j)
 
     return

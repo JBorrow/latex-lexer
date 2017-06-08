@@ -227,7 +227,12 @@ class PostprocessedData(object):
             uids.append(item.uid)
             htmls.append(item.html)
 
-        return ltcstm.regex.text_replace(text, uids, htmls)
+        try:
+            replaced = ltcstm.regex.text_replace(text, uids, htmls)
+        except IndexError:  # No replacements to be made
+            replaced = text
+
+        return replaced
 
 
     def replace_all(self, text):
@@ -251,22 +256,26 @@ class MasterData(object):
         + Output string (output) """
 
     def __init__(self, text, bib=""):
-        self.text = ltcstm.regex.remove_pdfonly(text)
+        self.input_text = text
         self.bib = bib
 
-        self.preprocessed = self.replace_run(text)
-        self.markdown = self.run_pandoc(self.preprocessed.output_text)
+        postprocssed = self.run_compiler(text)
 
-        self.postprocessed = PostprocessedData(self.preprocessed, self.markdown)
+        self.lectures = postprocssed.lectures
+        self.sections = postprocssed.sections
+        self.keypoints = postprocssed.keypoints
+        self.output_text = postprocssed.output
 
-        self.output = ""
 
-
-    def replace_run(self, text):
+    def run_compiler(self, text):
         """ Does the initial replacement run with the PreprocessedData object """
-        preprocessed = PreprocessedData(text)
+        text = ltcstm.regex.remove_pdfonly(text)
 
-        return preprocessed
+        preprocessed = PreprocessedData(text)
+        markdown = self.run_pandoc(preprocessed.output_text)
+        postprocessed = PostprocessedData(preprocessed, markdown)
+
+        return postprocessed
 
 
     def run_pandoc(self, text):
