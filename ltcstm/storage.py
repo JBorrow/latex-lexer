@@ -19,6 +19,73 @@ def html_output(uid):
     return "<!-- {} -->".format(uid)
 
 
+def split_data(master_data):
+    """ Splits the master_data object by lectures and sections
+
+        Returns secs, lecs, keypoints"""
+
+    markdown = master_data.output_data.split("\n")
+    lectures = master_data.lectures
+    sections = master_data.sections
+    keypoints = master_data.keypoints
+
+    # lecs[name] = lectures.name
+    # lecs[name][keypoints] = [associated indicies in keypoints]
+    # lecs[name][data] = associated markdown
+
+
+    def find_keypoints_section(keypoints, section):
+        """ Find the keypoints that are associated with a section """
+        output = []
+
+        for i, keypoint in enumerate(keypoints):
+            if keypoint.section == section:
+                output.append(i)
+            else:
+                continue
+
+        return output
+
+
+    def find_keypoints_lecture(keypoints, lecture):
+        """ Find the keypoints that are associated with a lecture """
+        output = []
+
+        for i, keypoint in enumerate(keypoints):
+            if keypoint.lecture == lecture:
+                output.append(i)
+            else:
+                continue
+
+        return output
+
+
+    def split_single(markdown, parts, keypoints, find_keypoints):
+        """ find_keypoints is a callable that finds the keypoints associated with the parts """
+        output = {}
+
+        for item in parts:
+            lines = markdown[item.start, item.end]
+
+            name = item.name
+
+            kps = find_keypoints(keypoints, item)
+
+            output[name] = {
+                "data": "\n".join(lines),
+                "keypoints": kps
+            }
+
+        return output
+
+
+    secs = split_single(markdown, sections, keypoints, find_keypoints_section)
+    lecs = split_single(markdown, lectures, keypoints, find_keypoints_lecture)
+    kps = [kp.output_data for kp in keypoints]
+
+    return secs, lecs, kps
+
+
 class Keypoint(object):
     """ Basic keypoint storage and extraction class.
 
