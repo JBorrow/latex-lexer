@@ -22,7 +22,9 @@ def html_output(uid):
 def split_data(master_data):
     """ Splits the master_data object by lectures and sections
 
-        Returns secs, lecs, keypoints"""
+        Returns secs, lecs, keypoints."""
+
+    #TODO WRITE TEST
 
     markdown = master_data.output_data.split("\n")
     lectures = master_data.lectures
