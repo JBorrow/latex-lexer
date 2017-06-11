@@ -328,12 +328,12 @@ class MasterData(object):
         self.input_text = text
         self.bib = bib
 
-        postprocssed = self.run_compiler(text)
+        postprocessed = self.run_compiler(text)
 
-        self.lectures = postprocssed.lectures
-        self.sections = postprocssed.sections
-        self.keypoints = postprocssed.keypoints
-        self.output_text = postprocssed.output
+        self.lectures = postprocessed.lectures
+        self.sections = postprocessed.sections
+        self.keypoints = postprocessed.keypoints
+        self.output_text = postprocessed.output
 
 
     def run_compiler(self, text):
