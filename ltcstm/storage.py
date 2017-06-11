@@ -99,7 +99,7 @@ class PreprocessedData(object):
         """ Replaces sections with appropriate uids. """
         sections = ltcstm.regex.find_sections(text)
 
-        replaced, uids = ltcstm.regex.replace_with_uids(text, sections, "LEC-")
+        replaced, uids = ltcstm.regex.replace_with_uids(text, sections, "SEC-")
 
         return replaced, sections, uids
 
@@ -108,7 +108,7 @@ class PreprocessedData(object):
         """ Replaces keypoints with appropriate uids. """
         keypoints = ltcstm.regex.find_keypoints(text)
 
-        replaced, uids = ltcstm.regex.replace_with_uids(text, keypoints, "LEC-")
+        replaced, uids = ltcstm.regex.replace_with_uids(text, keypoints, "KEY-")
 
         return replaced, keypoints, uids
 

@@ -100,5 +100,3 @@ def remove_pdfonly(text):
             output.append(line)
 
         return "\n".join(output)
-
-    
