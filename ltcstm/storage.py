@@ -273,18 +273,18 @@ class PostprocessedData(object):
 
     def categorise_keypoints(self, keypoints, keypoint_uids):
         """ Creates the keypoint objects from the Keypoint class """
-        keypoints = []
-        line_numbers = self.find_locations(self.markdown, keypoint_uids)
+        keypoint_output = []
+        line_numbers, _ = self.find_locations(self.markdown, keypoint_uids)
 
         for keypoint, uid, line_number in zip(keypoints, keypoint_uids, line_numbers):
             lecture = self.find_associated(line_number, self.lectures)
             section = self.find_associated(line_number, self.sections)
 
-            keypoints.append(
+            keypoint_output.append(
                 Keypoint(keypoint, uid, line_number, lecture, section)
             )
 
-        return keypoints
+        return keypoint_output
 
 
     def replace_with_html(self, text, items):

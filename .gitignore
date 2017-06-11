@@ -1,2 +1,6 @@
 *.cache*
 *.pyc
+
+tests/integration_test/*.yaml
+
+.DS_Store
