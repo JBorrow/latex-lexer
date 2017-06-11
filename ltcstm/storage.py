@@ -26,7 +26,7 @@ def split_data(master_data):
 
     #TODO WRITE TEST
 
-    markdown = master_data.output_data.split("\n")
+    markdown = master_data.output_text.split("\n")
     lectures = master_data.lectures
     sections = master_data.sections
     keypoints = master_data.keypoints
