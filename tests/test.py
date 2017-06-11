@@ -6,9 +6,9 @@ def test_integration():
     """ Integration test """
     parse_to_files("tests/integration_test/test.tex",
                    "tests/integration_test/bib.bib",
-                   "tests/integration_test/s.yaml",
-                   "tests/integration_test/l.yaml",
-                   "tests/integration_test/kp.yaml")
+                   "tests/integration_test/s.json",
+                   "tests/integration_test/l.json",
+                   "tests/integration_test/kp.json")
 
     return
 

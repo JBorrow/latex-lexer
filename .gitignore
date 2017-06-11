@@ -2,5 +2,6 @@
 *.pyc
 
 tests/integration_test/*.yaml
+tests/integration_test/*.json
 
 .DS_Store

@@ -1,7 +1,7 @@
 """ Input-output operations and wrappers for the parser """
 
 from ltcstm.storage import MasterData, split_data
-import yaml
+import json
 
 
 def parse_string(string, bib=""):
@@ -37,20 +37,20 @@ def process_file(filename, bib=""):
 
 
 def parse_to_files(filename, bib="",
-                   fn_sections="sections.yaml",
-                   fn_lectures="lectures.yaml",
-                   fn_kps="kps.yaml"):
-    """ Opens the file, filename, and does a processing run and saves them as yaml files. """
+                   fn_sections="sections.json",
+                   fn_lectures="lectures.json",
+                   fn_kps="kps.json"):
+    """ Opens the file, filename, and does a processing run and saves them as json files. """
 
     secs, lecs, kps = process_file(filename, bib)
 
     with open(fn_sections, "w") as file:
-        yaml.dump(secs, file)
+        json.dump(secs, file)
 
     with open(fn_lectures, "w") as file:
-        yaml.dump(lecs, file)
+        json.dump(lecs, file)
 
     with open(fn_kps, "w") as file:
-        yaml.dump(kps, file)
+        json.dump(kps, file)
 
     return
