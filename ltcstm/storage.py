@@ -26,7 +26,7 @@ def split_data(master_data):
 
     #TODO WRITE TEST
 
-    markdown = master_data.output_text.split("\n")
+    markdown = master_data.output_text.splitlines()
     lectures = master_data.lectures
     sections = master_data.sections
     keypoints = master_data.keypoints
@@ -67,7 +67,7 @@ def split_data(master_data):
         output = {}
 
         for item in parts:
-            lines = markdown[item.start, item.end]
+            lines = markdown[item.start:item.end]
 
             name = item.name
 
@@ -155,6 +155,7 @@ class PreprocessedData(object):
         rep, self.keypoints, self.keypoint_uids = self.replace_keypoints(rep)
         self.output_text = rep
 
+
     def replace_lectures(self, text):
         """ Replaces lectures with appropriate uids. """
         lectures = ltcstm.regex.find_lectures(text)
@@ -206,7 +207,7 @@ class PostprocessedData(object):
 
         # We can assume that the items are ordered.
 
-        list_of_lines = text.split("\n")
+        list_of_lines = text.splitlines()
         number_of_lines = len(list_of_lines)
         line_numbers = []
 
@@ -243,16 +244,16 @@ class PostprocessedData(object):
 
     def categorise_part(self, parts, part_uids):
         """ Creates the part objects from the Part class """
-        parts = []
+        part_output = []
 
         start_stop = self.find_start_stop(self.markdown, part_uids)
 
         for part, uid, (start, stop) in zip(parts, part_uids, start_stop):
-            parts.append(
+            part_output.append(
                 Part(part, start, stop, uid)
             )
 
-        return parts
+        return part_output
 
 
     def find_associated(self, line_number: int, haystack: List[Part]) -> Part:
@@ -361,7 +362,8 @@ class MasterData(object):
             "-F",
             "pandoc-citeproc"] + bib
 
-        print("Running Pandoc (MD -> HTML)")
-        output_data = pypandoc.convert_text(text, "html", format="md", extra_args=extra_args)
+        print("Running Pandoc (LaTeX -> markdown)")
+
+        output_data = pypandoc.convert_text(text, "markdown", format="latex", extra_args=extra_args)
 
         return output_data
