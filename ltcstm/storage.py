@@ -136,14 +136,29 @@ class Keypoint(object):
 class Part(object):
     """ Basic class for the storage of sections, lectures, start and end points """
 
-    def __init__(self, name, start, end, uid=""):
-        self.name = name
+    def __init__(self, input_text, start, end, uid=""):
+        self.name = self.extract_part(input_text)
         self.start = start
         self.end = end
         self.uid = uid
         self.html = html_output(uid)
 
         return
+
+
+    def extract_part(self, input_text):
+        """ Extracts the data from the custom syntax. """
+
+        regex = r"\{(.*)\}"
+
+        find = re.search(regex, input_text, re.VERBOSE)
+
+        try:
+            output = find.group(1)
+        except AttributeError:  # no match
+            output = ""
+
+        return output
 
 
 class PreprocessedData(object):
